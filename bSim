@@ -1,0 +1,106 @@
+import java.awt.Color;
+import java.awt.event.MouseEvent;
+
+import acm.program.*;
+import acm.graphics.*;
+import acm.util.RandomGenerator;
+
+/**
+ * This class makes use of the Graphics Program to create several gBall objects.
+ * Using the constructor in the gBall class which is inturn an extension of the thread class
+ * several instances and thus, several gBall objects are created
+ * according to the specifications of the assignment
+ * @author Gohar Saqib Fazal; McGill ID: 260840565
+ */
+
+public class bSim extends GraphicsProgram {
+	//setting up the parameters to be used in the following run method
+	// display parameters
+	private static final int WIDTH = 1200;// The width of the window created
+	private static final int HEIGHT = 800;//The height of the window created
+	private static final int OFFSET=200; //Screen offset
+	private static final int LABEL_XPOSITION = 800;//X Position of the GLabel
+	private static final int LABEL_YPOSITION = 575;//Y Position of the GLabel 
+	// simulation parameters 
+	private static final int NUMBALLS = 15;// Number of balls to simulate.
+	private static final double MINSIZE = 1;// Minimum ball size
+	private static final double MAXSIZE = 8;// Maximum ball size	
+	private static final double XMIN = 10; //Minimum X start location
+	private static final double XMAX =	50;	//Maximum X start location
+	private static final double YMIN = 50;// Minimum Y start location
+	private static final double YMAX = 100; // Maximum Y start location
+	private static final double EMIN = 0.4;// Minimum loss coefficient
+	private static final double EMAX = 0.9;// Maximum loss coefficient
+	private static final double VMIN = 0.5;// Minimum X velocity
+	private static final double VMAX = 3.0; // Maximum X velocity 
+	private static final double SCALAR_FACTOR = 10;// Allows for conversion between the MKS units and pixels 
+
+	//creating a Glabel object so that it can be used later in the methods to add on the screen
+	GLabel label = new GLabel("Click mouse to continue");
+
+	//Sets up random number generator
+	private RandomGenerator rgen = RandomGenerator.getInstance();
+
+	// Sets up a binary tree  
+	bTree myTree = new bTree();
+
+	public void run() {
+		//adjusts the width and height of the applet according to the specifications given in the assignment
+		this.resize(WIDTH,HEIGHT); 
+
+		//creates a line from (0,600) to (1200,600) 
+		add(new GLine (0,HEIGHT-OFFSET,WIDTH,HEIGHT-OFFSET));
+
+		/*Create and start multiple instances of gBall
+		 * The gBall constructor is called to be implemented by the GraphicsProgram
+		 * The randomly generated parameters are also set for the constructor of the new gBall object i.e. ballA using the RandomGenerator class
+		 */
+		for (int n=0;n<NUMBALLS;n++)
+		{
+			//setting up the parameters for the constructor that are to be randomly generated
+			double xi = rgen.nextDouble(XMIN, XMAX);
+			double yi = rgen.nextDouble(YMIN,YMAX);
+			double bSize = rgen.nextDouble(MINSIZE*SCALAR_FACTOR,MAXSIZE*SCALAR_FACTOR);
+			Color bColor = rgen.nextColor();
+			double bLoss = rgen.nextDouble(EMIN,EMAX);
+			double bVel = rgen.nextDouble(VMIN,VMAX);
+
+			gBall aBall = new gBall( xi, yi,bSize, bColor, bLoss, bVel);//using the constructor to create a gBall object
+			add(aBall.myBall);//adds the randomly generated balls onto the screen
+
+			/**
+			 *Causes this thread to begin execution; the Java Virtual Machine calls the run method of this thread.
+			 *The result is that two threads are running concurrently: the current thread (which returns from the call to the start method) and the other thread (which executes its run method).
+			 *It is never legal to start a thread more than once. In particular, a thread may not be restarted once it has completed execution.
+			 */
+			aBall.start();
+
+			//modifying the addNode method to accommodate the gBall object
+			myTree.addNode(aBall);
+
+		}
+
+		// scan the binary tree for moving balls
+		while(myTree.isRunning()!=false) {
+			myTree.isRunning();
+		}
+
+		//The Glabel asking the user for a mouse click to continue the program is added onto the screen
+		label.move(LABEL_XPOSITION, LABEL_YPOSITION);
+		add(label);
+	}
+
+	//Detecting users input
+	public void init() {
+		addMouseListeners();
+	}
+
+	//Using users input to sort the balls in ascending order of size	
+	public void mouseClicked(MouseEvent e) {
+		myTree.moveSort();
+		//when the user clicks the message on the screen changes
+		label.setLabel("All sorted!");
+		add(label);
+	}
+
+}
