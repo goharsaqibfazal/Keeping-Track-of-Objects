@@ -1,0 +1,89 @@
+import acm.graphics.GOval;
+import acm.program.*;
+
+/**
+ * This class makes use of a Binary Tree to arrange the balls in ascending order. 
+ * We use an Inorder Traversal i.e. Left-Root-Right to arrange the balls according 
+ * to size
+ * @author Gohar Saqib Fazal; McGill ID: 260840565
+ */
+
+public class bTree {
+
+	//constant variables to be used in the Binary Tree
+	public double refX = 0;
+	public int movingBalls = 0;
+	private static final int HEIGHT= 800;
+	private static final int OFFSET= 200;
+
+	//creating the nodes of the binary tree i.e. root followed by a left and right node
+	public class bNode {
+		gBall aBall;
+		bNode left;
+		bNode right;
+	}
+	//initializing the root of the binary tree
+	bNode root = null;
+
+	//adding the gBall object as a node, instantiating the binary tree
+	public void addNode(gBall aBall) {
+		root = rNode (root,aBall);
+	}
+
+	//creating the binary tree
+	private bNode rNode(bNode root, gBall aBall) {
+		if (root==null) {
+			bNode node = new bNode();
+			node.aBall = aBall;
+			node.left = null;
+			node.right = null;
+			root = node;
+			return root;
+		}
+		else if (aBall.bSize<root.aBall.bSize) {
+			root.left = rNode(root.left,aBall);
+		}
+		else {
+			root.right = rNode(root.right,aBall);
+		}
+		return root;
+
+	}
+	//checks if the balls are bouncing. A traversal is carried out when the balls stop bouncing.
+	public boolean isRunning() {
+		boolean sentinel = true;
+		movingBalls = 0;
+		traversal_inorder_runningcheck(root);
+		if (movingBalls!=0) {
+			return sentinel;
+		}
+		else {
+			sentinel = false;
+			return sentinel;
+		}
+	}
+	//making sure the traversal across the tree is Left-Root-Right
+	private void traversal_inorder_runningcheck(bNode root) {
+		if (root.left!= null) 
+			traversal_inorder_runningcheck(root.left);
+		if (root.aBall.is_Running()==true)
+			movingBalls+=1; 
+		if (root.right!=null)
+			traversal_inorder_runningcheck(root.right);
+	}
+	//using the in-order traversal to move the balls on the screen for sorting
+	public void moveSort() {
+		refX = 0;
+		Balls_inOrder(root);
+	} 
+	//calling for the balls to be arranged in order according to their sizes
+	private void Balls_inOrder (bNode root) {
+		if (root.left!= null) 
+			Balls_inOrder(root.left);
+		root.aBall.moveTo(refX, HEIGHT-OFFSET-root.aBall.bSize);
+		refX= root.aBall.bSize + refX;
+		if (root.right!= null)
+			Balls_inOrder(root.right);
+
+	}
+}
