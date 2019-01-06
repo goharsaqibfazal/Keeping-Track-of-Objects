@@ -1,0 +1,145 @@
+import acm.graphics.GOval;
+import java.awt.Color;
+
+/**
+ * This class provides a single instance of a ball falling under the
+ * influence of gravity. Because it is an extension of the Thread
+ * class, each instance will run concurrently, with animations on the
+ * screen as a side effect. We take advantage here of the fact that
+ * the run method associated with the Graphics Program class runs in
+ * a separate thread.
+ * @author Gohar Saqib Fazal; McGill ID: 260840565
+ */
+
+public class gBall extends Thread {
+
+	//Declaring the variables used in the gBall constructor
+	public GOval myBall; 
+	double Xi;
+	double Yi;
+	double bSize;
+	Color bColor;
+	double bLoss;
+	double bVel;
+
+	/**
+	 * The constructor gBall specifies the parameters for simulation:
+	 * 
+	 * @param xi: (double) The initial X position of the center of the ball(in simulation units)
+	 * @param yi: (double) The initial Y position of the center of the ball (in stimulation units)
+	 * @param bSize: (double) The radius of the ball (in pixels)
+	 * @param bColor: (Color) The initial color of the ball
+	 * @param bLoss: (double) Fraction [0,1] of the energy lost on each bounce
+	 * @param bVel: (double) Horizontal velocity of the ball (in simulation units/second)
+	 */
+
+	public gBall(double xi, double yi, double bSize, Color bColor, double bLoss, double bVel) {
+		super();
+		Xi = xi;
+		Yi = yi;
+		this.bSize = bSize;
+		this.bColor = bColor;
+		this.bLoss = bLoss;
+		this.bVel = bVel;
+		//Instantiates a GOval object using the parameters defined above 
+		myBall = new GOval (Xi,Yi,bSize,bSize); 
+		myBall.setFilled(true);
+		myBall.setFillColor(bColor); 
+	}
+
+	//Constants that will not change throughout the motion of the ball
+	private static final double G = 9.8;// gravitational constant in m/s^2
+	private static final double INTERVAL_TIME= 0.01;// The interval time in seconds
+	boolean check = true; 
+
+	/**
+	 * If this thread was constructed using a separate Runnable run object, then that Runnable object's run method is called; otherwise, this method does nothing and returns. 
+	 * Subclasses of Thread should override this method.
+	 * In this case the bSim subclass starts the run method in the gBall class.
+	 */
+	public void run() {
+		//Code to initialize variables used in the while loop
+		double h0 = Yi; // sets the initial height of the ball to a randomly generated y-coordinate of the ball
+		double totalTime = 0; // total time of the motion
+		boolean directionUp = false;
+		double height = 0; // height of the ball above the ground
+		double time = 0; //time of the motion in one direction
+		double initialUpPosition = 0;
+		double el = (1-bLoss); // remaining energy of the ball after collision
+		double vt = Math.sqrt(2*G*h0); // the vertical velocity of the ball
+
+		/*simulation loop
+		 *controls the direction of the ball and applies Newtonian mechanics 
+		 */ 
+		while (true) //the while loop stops the ball when it is not bouncing
+		{
+			check = true; 
+			myBall.setLocation(Xi, 600-bSize-(10*height));
+
+			if (!directionUp) { // downward motion 
+				height = h0 - 0.5*G*Math.pow(time, 2);
+
+				if (height <= 0) {              //ground impact
+					h0 = height;                // new h0, also be used to determine direction
+					initialUpPosition = height; //should be close to 0
+					directionUp = true;
+					time= 0;                    //resetting time for upward arc
+					vt =vt*Math.sqrt(el);       //new impact energy loss
+				}
+			}
+
+			else {                              //direction is up
+				height= initialUpPosition + vt*time - 0.5*G*Math.pow(time, 2);
+
+				if (height > h0) {              //still going up
+					h0 = height;                //keeping track of last highest point
+				}
+
+				else {                          //starting to go down
+					directionUp = false;
+					time = 0;                   //resetting time for going down
+				}
+			}
+			/*the break statement in the if loop is used to stop the balls from moving and going out of the screen.
+			 *When the vertical velocity is less than 0.1 m/s the balls stop moving
+			 */
+			if(vt < 0.1) {
+				check = false;
+				break;
+			}
+			Xi = Xi + bVel*5*INTERVAL_TIME;//adding the range into the x-Position in order to allow for a projectile motion. Multiplying the bVel by 5 to increase the horizontal distance traveled by the ball
+
+			//Make sure the time increments sequentially 
+			time+= INTERVAL_TIME; 
+			totalTime += INTERVAL_TIME;
+
+			/**
+			 * Thread.sleep causes the currently executing thread to sleep (temporarily cease execution) for the specified number of milliseconds, subject to the precision and accuracy of system timers and schedulers. The thread does not lose ownership of any monitors.
+			 * 
+			 * Parameters:
+			 * the length of time to sleep in milliseconds
+			 * 
+			 * Throws:
+			 * IllegalArgumentException - if the value of the length of time to sleep in milliseconds is negative
+			 * InterruptedException - if any thread has interrupted the current thread. The interrupted status of the current thread is cleared when this exception is thrown.
+			 */
+			try {
+				// pause for 50 milliseconds
+				Thread.sleep(50);
+			} catch (InterruptedException e) {
+				e.printStackTrace(); }
+		}
+
+
+	}
+	//checks if the balls are still moving
+	public boolean is_Running() {
+		return check; 
+	}
+	//moves the ball to the desired position and then prints the coordinates to allow the user to follow the motion of the balls
+	public void moveTo(double x,double y) {
+		myBall.setLocation(x,y);
+		System.out.println("x:"+x); 
+		System.out.println("y:"+y);
+	}
+}
