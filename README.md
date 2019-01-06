@@ -1,0 +1,2 @@
+# Keeping-Track-of-Objects
+This project is about data structures and objects, specifically the use of B-Trees to organize data in an explicit order. It extends the work done in previous projects to include a mechanism for keeping track of all objects generated in order to i) determine when the entire set of balls has stopped moving and ii) to access each ball in order of size. When the last ball stops moving, the balls are arranged from left to right in size order.
